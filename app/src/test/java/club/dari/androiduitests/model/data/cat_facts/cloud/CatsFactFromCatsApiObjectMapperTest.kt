@@ -31,7 +31,7 @@ class CatsFactFromCatsApiObjectMapperTest : StringSpec({
         val result = mapper.map(apiObject)
 
         println("CatFact:")
-        println(apiObject.toString())
+        println(result.toString())
 
         //Result
         result.status.verified shouldBe true

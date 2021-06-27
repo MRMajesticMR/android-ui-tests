@@ -42,6 +42,8 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
 
     private lateinit var catsFactFromCatsApiObjectMapper: CatsFactFromCatsApiObjectMapper
 
+    private lateinit var catsFactsCloudDataSourceImpl: CatsFactsCloudDataSourceImpl
+
     override fun beforeTest(testCase: TestCase) {
         mockWebServer = MockWebServer()
         mockWebServer.start()
@@ -63,7 +65,7 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
     init {
         "getCatFacts actions" {
             //Init
-            val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
+            catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
                 catsApi = mockCatApi,
                 catsFactFromCatsApiObjectMapper = catsFactFromCatsApiObjectMapper
             )
@@ -72,8 +74,6 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
             //Action
             catsFactsCloudDataSourceImpl.getCatFacts()
                 .test()
-                .assertNoErrors()
-                .assertValueCount(mockFacts.size)
                 .dispose()
 
             //Result
@@ -97,7 +97,7 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
 
             mockWebServer.enqueue(response)
 
-            val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
+            catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
                 catsApi = catsApi,
                 catsFactFromCatsApiObjectMapper = catsFactFromCatsApiObjectMapper
             )
@@ -125,7 +125,7 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
                     .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
             )
 
-            val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
+            catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
                 catsApi = catsApi,
                 catsFactFromCatsApiObjectMapper = catsFactFromCatsApiObjectMapper
             )
