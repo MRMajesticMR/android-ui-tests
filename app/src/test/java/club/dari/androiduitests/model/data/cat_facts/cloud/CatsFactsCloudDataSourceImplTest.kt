@@ -1,11 +1,19 @@
 package club.dari.androiduitests.model.data.cat_facts.cloud
 
+import club.dari.androiduitests.api.ApisProviderImpl
 import club.dari.androiduitests.api.cats.CatsApi
 import club.dari.androiduitests.api.cats.objects.CatFactCatsApiObject
+import club.dari.androiduitests.model.utils.MockResponseFileReader
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
 import io.reactivex.Single
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.*
+import retrofit2.HttpException
+import java.net.HttpURLConnection
 
 class CatsFactsCloudDataSourceImplTest : StringSpec() {
 
@@ -27,15 +35,33 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
 
     private val mockApiAnswer = Single.just(mockFacts)
 
-    private val mockCatApi = mock<CatsApi>() {
-        on { getFacts() } doReturn mockApiAnswer
+    private lateinit var mockCatApi: CatsApi
+
+    private lateinit var mockWebServer: MockWebServer
+    private lateinit var catsApi: CatsApi
+
+    private lateinit var catsFactFromCatsApiObjectMapper: CatsFactFromCatsApiObjectMapper
+
+    override fun beforeTest(testCase: TestCase) {
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+
+        mockCatApi = mock {
+            on { getFacts() } doReturn mockApiAnswer
+        }
+        catsApi = ApisProviderImpl(
+            baseUrl = mockWebServer.url("").toString()
+        ).catsApi
+
+        catsFactFromCatsApiObjectMapper = mock()
     }
 
-    private val catsFactFromCatsApiObjectMapper = mock<CatsFactFromCatsApiObjectMapper>()
+    override fun afterTest(testCase: TestCase, result: TestResult) {
+        mockWebServer.shutdown()
+    }
 
     init {
-
-        "getCatFacts" {
+        "getCatFacts actions" {
             //Init
             val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
                 catsApi = mockCatApi,
@@ -56,6 +82,66 @@ class CatsFactsCloudDataSourceImplTest : StringSpec() {
 
             verifyNoMoreInteractions(mockCatApi)
             verifyNoMoreInteractions(catsFactFromCatsApiObjectMapper)
+        }
+
+        "getCatFacts with success response" {
+            //Init
+            val reader = MockResponseFileReader("cats-api-responses/get-facts(success).json")
+
+            println("Mock response:")
+            println(reader.content)
+
+            val response = MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody(reader.content)
+
+            mockWebServer.enqueue(response)
+
+            val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
+                catsApi = catsApi,
+                catsFactFromCatsApiObjectMapper = catsFactFromCatsApiObjectMapper
+            )
+
+            //Action
+            val testObserver = catsFactsCloudDataSourceImpl.getCatFacts()
+                .test()
+
+            testObserver.awaitTerminalEvent()
+
+            testObserver
+                .assertNoErrors()
+                .dispose()
+
+            //Result
+            verify(catsFactFromCatsApiObjectMapper, Times(6)).map(any())
+
+            verifyNoMoreInteractions(catsFactFromCatsApiObjectMapper)
+        }
+
+        "getCatFacts with error response" {
+            //Init
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            )
+
+            val catsFactsCloudDataSourceImpl = CatsFactsCloudDataSourceImpl(
+                catsApi = catsApi,
+                catsFactFromCatsApiObjectMapper = catsFactFromCatsApiObjectMapper
+            )
+
+            //Action
+            val testObserver = catsFactsCloudDataSourceImpl.getCatFacts()
+                .test()
+
+            testObserver.awaitTerminalEvent()
+
+            testObserver
+                .assertError { it is HttpException }
+                .dispose()
+
+            //Result
+            verifyZeroInteractions(catsFactFromCatsApiObjectMapper)
         }
 
     }

@@ -26,7 +26,9 @@ class CatsFactsCloudDataSourceImpl(
 
     override fun getCatFacts(): Single<List<CatFact>> =
         catsApi.getFacts()
-            .map { it.map(catsFactFromCatsApiObjectMapper::map) }
+            .map {
+                it.map(catsFactFromCatsApiObjectMapper::map)
+            }
 
 
 }

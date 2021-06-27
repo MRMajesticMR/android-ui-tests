@@ -16,13 +16,14 @@ interface ApisProvider {
 }
 
 class ApisProviderImpl(
+    private val baseUrl: String, //https://cat-fact.herokuapp.com/
     private val assistApiInterceptors: List<Interceptor> = emptyList(),
     private val assistApiCustomTypeAdapters: Map<Class<*>, Any> = emptyMap()
 ) : ApisProvider {
 
     override val catsApi: CatsApi =
         Retrofit.Builder()
-            .baseUrl("https://cat-fact.herokuapp.com/")
+            .baseUrl(baseUrl)
             .addConverterFactory(
                 GsonConverterFactory.create(
                     GsonBuilder()
