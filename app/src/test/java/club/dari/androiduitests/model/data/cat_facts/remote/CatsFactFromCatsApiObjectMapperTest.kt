@@ -1,4 +1,4 @@
-package club.dari.androiduitests.model.data.cat_facts.cloud
+package club.dari.androiduitests.model.data.cat_facts.remote
 
 import club.dari.androiduitests.api.cats.objects.CatFactCatsApiObject
 import io.kotest.core.spec.style.StringSpec

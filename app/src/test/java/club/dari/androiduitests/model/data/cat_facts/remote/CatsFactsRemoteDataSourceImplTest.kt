@@ -1,4 +1,4 @@
-package club.dari.androiduitests.model.data.cat_facts.cloud
+package club.dari.androiduitests.model.data.cat_facts.remote
 
 import club.dari.androiduitests.api.ApisProviderImpl
 import club.dari.androiduitests.api.cats.CatsApi
@@ -15,7 +15,7 @@ import org.mockito.kotlin.*
 import retrofit2.HttpException
 import java.net.HttpURLConnection
 
-class CatsFactsCloudDataSourceImplTest : StringSpec() {
+class CatsFactsRemoteDataSourceImplTest : StringSpec() {
 
     private val mockFacts = listOf(
         CatFactCatsApiObject(
